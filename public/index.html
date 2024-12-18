@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Git Checker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            background-color: #f5f5f5;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .result {
+            white-space: pre-wrap;
+            background-color: #fff;
+            padding: 10px;
+            border-radius: 3px;
+            margin-top: 10px;
+        }
+        input[type="text"], select {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .branch-selectors {
+            display: none;
+        }
+        .file-browser {
+            display: flex;
+            margin-top: 20px;
+            gap: 20px;
+        }
+        .file-list {
+            flex: 1;
+            max-width: 300px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            overflow-y: auto;
+            max-height: 400px;
+        }
+        .file-content {
+            flex: 2;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            padding: 10px;
+            background-color: #fff;
+            min-height: 400px;
+            overflow-y: auto;
+        }
+        .file-item {
+            padding: 5px 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .file-item:hover {
+            background-color: #f0f0f0;
+        }
+        .file-item.folder {
+            font-weight: bold;
+        }
+        .file-item.selected {
+            background-color: #e0e0e0;
+        }
+        pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <h1>Git Checker</h1>
+    
+    <div class="container">
+        <h2>Repository Information</h2>
+        <input type="text" id="repoPath" placeholder="Enter repository path" onchange="handleRepoPathChange()">
+        <button onclick="checkRepo()">Check Repository</button>
+        <div id="repoInfo" class="result"></div>
+    </div>
+
+    <div class="container">
+        <h2>Branch Comparison</h2>
+        <div class="branch-selectors" id="branchSelectors">
+            <div>
+                <label for="mainBranch">Main Branch:</label>
+                <select id="mainBranch"></select>
+            </div>
+            <div>
+                <label for="featureBranch">Feature Branch:</label>
+                <select id="featureBranch"></select>
+            </div>
+            <button onclick="compareBranches()">Compare Branches</button>
+            <button onclick="generateSourceFile()" style="margin-left: 10px; background-color: #2196F3;">Generate Source Code File</button>
+        </div>
+        <div id="compareResult" class="result"></div>
+    </div>
+
+    <div class="container">
+        <h2>Source Code Browser</h2>
+        <div class="file-browser">
+            <div class="file-list" id="fileList">
+                <!-- Files will be listed here -->
+            </div>
+            <pre class="file-content" id="fileContent">
+                <!-- File content will be shown here -->
+            </pre>
+        </div>
+    </div>
+
+    <script>
+        let availableBranches = [];
+
+        async function handleRepoPathChange() {
+            const repoPath = document.getElementById('repoPath').value;
+            if (!repoPath) return;
+
+            try {
+                const response = await fetch('/api/get-branches', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ repoPath }),
+                });
+                const data = await response.json();
+                
+                if (data.error) {
+                    document.getElementById('repoInfo').textContent = 'Error: ' + data.error;
+                    return;
+                }
+
+                availableBranches = data.all;
+                updateBranchSelectors();
+                document.getElementById('branchSelectors').style.display = 'block';
+
+                // Load file browser
+                loadFileList(repoPath);
+            } catch (error) {
+                document.getElementById('repoInfo').textContent = 'Error: ' + error.message;
+            }
+        }
+
+        function updateBranchSelectors() {
+            const mainSelect = document.getElementById('mainBranch');
+            const featureSelect = document.getElementById('featureBranch');
+            
+            // Clear existing options
+            mainSelect.innerHTML = '';
+            featureSelect.innerHTML = '';
+
+            // Add branches to selectors
+            availableBranches.forEach(branch => {
+                const mainOption = document.createElement('option');
+                mainOption.value = branch;
+                mainOption.textContent = branch;
+                if (branch === 'develop') {
+                    mainOption.selected = true;
+                }
+                mainSelect.appendChild(mainOption.cloneNode(true));
+                
+                const featureOption = document.createElement('option');
+                featureOption.value = branch;
+                featureOption.textContent = branch;
+                featureSelect.appendChild(featureOption);
+            });
+        }
+
+        async function checkRepo() {
+            const repoPath = document.getElementById('repoPath').value;
+            try {
+                const response = await fetch('/api/check-repo', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ repoPath }),
+                });
+                const data = await response.json();
+                document.getElementById('repoInfo').textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('repoInfo').textContent = 'Error: ' + error.message;
+            }
+        }
+
+        async function compareBranches() {
+            const repoPath = document.getElementById('repoPath').value;
+            const mainBranch = document.getElementById('mainBranch').value;
+            const featureBranch = document.getElementById('featureBranch').value;
+
+            try {
+                const response = await fetch('/api/compare-branches', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        repoPath, 
+                        targetBranch: mainBranch,
+                        currentBranch: featureBranch 
+                    }),
+                });
+                const data = await response.json();
+                document.getElementById('compareResult').textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('compareResult').textContent = 'Error: ' + error.message;
+            }
+        }
+
+        async function generateSourceFile() {
+            const repoPath = document.getElementById('repoPath').value;
+            const mainBranch = document.getElementById('mainBranch').value;
+            
+            if (!repoPath || !mainBranch) {
+                alert('Please select a repository and main branch first.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/generate-source-file', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ repoPath, mainBranch }),
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    alert(`Source code file generated successfully!\nFile saved in sourcecodes directory as: ${data.fileName}`);
+                } else {
+                    alert('Error generating source code file: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        async function loadFileList(dirPath) {
+            try {
+                const response = await fetch('/api/browse-files', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ path: dirPath }),
+                });
+                const data = await response.json();
+
+                if (data.error) {
+                    document.getElementById('fileList').innerHTML = `<div class="error">${data.error}</div>`;
+                    return;
+                }
+
+                const fileList = document.getElementById('fileList');
+                fileList.innerHTML = '';
+
+                // Sort files: directories first, then files
+                const sortedFiles = data.files.sort((a, b) => {
+                    if (a.isDirectory === b.isDirectory) {
+                        return a.name.localeCompare(b.name);
+                    }
+                    return b.isDirectory - a.isDirectory;
+                });
+
+                sortedFiles.forEach(file => {
+                    const fileItem = document.createElement('div');
+                    fileItem.className = `file-item ${file.isDirectory ? 'folder' : ''}`;
+                    fileItem.innerHTML = `
+                        ${file.isDirectory ? '📁' : '📄'} ${file.name}
+                    `;
+                    
+                    fileItem.onclick = () => {
+                        if (file.isDirectory) {
+                            loadFileList(file.path);
+                        } else {
+                            loadFileContent(file.path);
+                        }
+                        
+                        // Remove previous selection
+                        const selected = fileList.querySelector('.selected');
+                        if (selected) selected.classList.remove('selected');
+                        fileItem.classList.add('selected');
+                    };
+                    
+                    fileList.appendChild(fileItem);
+                });
+            } catch (error) {
+                document.getElementById('fileList').innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        async function loadFileContent(filePath) {
+            try {
+                const response = await fetch('/api/get-file-content', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ path: filePath }),
+                });
+                const data = await response.json();
+
+                const fileContent = document.getElementById('fileContent');
+                if (data.error) {
+                    fileContent.textContent = `Error: ${data.error}`;
+                    return;
+                }
+
+                fileContent.textContent = data.content;
+            } catch (error) {
+                document.getElementById('fileContent').textContent = `Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

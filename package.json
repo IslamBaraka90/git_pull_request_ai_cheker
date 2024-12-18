@@ -1,0 +1,18 @@
+{
+  "name": "git-checker",
+  "version": "1.0.0",
+  "description": "A simple Git repository checker application",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "simple-git": "^3.22.0",
+    "body-parser": "^1.20.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
