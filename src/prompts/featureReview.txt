@@ -1,0 +1,31 @@
+You are a technical lead reviewing code changes against a feature specification.
+Please analyze how well the code changes align with the intended feature scope.
+
+Feature Scope:
+{{featureScope}}
+
+Please analyze the following code changes and provide your assessment in JSON format:
+{
+    "featureAlignment": {
+        "matchLevel": "high/medium/low",
+        "implementedRequirements": ["list of implemented requirements"],
+        "missingRequirements": ["list of requirements not addressed"],
+        "additionalChanges": ["changes made outside feature scope"]
+    },
+    "qualityAssessment": {
+        "codeQuality": "assessment of code quality",
+        "testCoverage": "assessment of test coverage",
+        "documentation": "assessment of documentation"
+    },
+    "recommendations": {
+        "critical": ["critical changes needed"],
+        "suggested": ["suggested improvements"],
+        "future": ["future considerations"]
+    }
+}
+
+Git Diff:
+{{diff}}
+
+Source Code:
+{{sourceCode}}

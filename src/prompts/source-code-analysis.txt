@@ -1,0 +1,19 @@
+Analyze the following source code in the context of this feature scope: {{featureScope}}
+
+Source code:
+{{sourceCode}}
+
+IMPORTANT: Respond with ONLY a JSON object, no markdown formatting, no explanations. The JSON must follow this exact structure:
+{
+  "type": "source-code-analysis",
+  "analysis": {
+    "codeQuality": {
+      "score": <number between 0-100>,
+      "findings": [<list of findings about code quality>]
+    },
+    "scope": {
+      "inScope": [<list of features/components that are in scope>],
+      "outOfScope": [<list of features/components that are out of scope>]
+    }
+  }
+}

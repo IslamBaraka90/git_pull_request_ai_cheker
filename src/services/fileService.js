@@ -56,11 +56,18 @@ class FileService {
             const outputPath = path.join(SOURCE_CODES_DIR, outputFileName);
             
             let fileContent = '';
+            let totalLines = 0;
+            const MAX_LINES = 1000; // Hard limit for total lines
+            let limitReached = false;
             
             async function processDirectory(dirPath) {
+                if (limitReached) return;
+                
                 const items = await fs.readdir(dirPath, { withFileTypes: true });
                 
                 for (const item of items) {
+                    if (limitReached) break;
+                    
                     const fullPath = path.join(dirPath, item.name);
                     const relativePath = path.relative(repoPath, fullPath);
                     const lowerName = item.name.toLowerCase();
@@ -82,9 +89,18 @@ class FileService {
                         const ext = path.extname(item.name).toLowerCase();
                         if (!item.name.startsWith('.') && INCLUDED_EXTENSIONS.includes(ext)) {
                             const content = await fs.readFile(fullPath, 'utf8');
+                            const contentLines = content.split('\n').length;
+                            
+                            // Check if adding this file would exceed the limit
+                            if (totalLines + contentLines + 3 > MAX_LINES) { // +3 for the metadata lines
+                                limitReached = true;
+                                break;
+                            }
+                            
                             fileContent += `File Path: ${relativePath}\n`;
                             fileContent += ` File Name: ${item.name}\n`;
                             fileContent += ` File Source Code: ${content}\n\n`;
+                            totalLines += contentLines + 3; // Count the actual lines plus metadata
                         }
                     }
                 }
@@ -96,7 +112,9 @@ class FileService {
             return {
                 success: true,
                 fileName: outputFileName,
-                path: outputPath
+                path: outputPath,
+                totalLines,
+                limitReached
             };
         } catch (error) {
             return {

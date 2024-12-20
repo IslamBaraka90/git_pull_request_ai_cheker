@@ -1,0 +1,16 @@
+Analyze the following Git diff in the context of this feature scope: {{featureScope}}
+
+Diff:
+{{diff}}
+
+Provide analysis in the following JSON format:
+{
+  "type": "diff-analysis",
+  "analysis": {
+    "changes": {
+      "impact": <"high", "medium", or "low">,
+      "riskLevel": <"high", "medium", or "low">,
+      "keyChanges": [<list of key changes identified in the diff>]
+    }
+  }
+}

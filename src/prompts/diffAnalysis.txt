@@ -1,0 +1,29 @@
+You are a code review expert. Please analyze the following git diff and source code changes.
+Focus on providing a comprehensive analysis of the modifications.
+
+Please provide your analysis in JSON format with the following structure:
+{
+    "changes": [
+        {
+            "file": "filename",
+            "type": "modification/addition/deletion",
+            "summary": "brief summary of changes",
+            "impact": "potential impact of changes",
+            "suggestions": ["improvement suggestions"],
+            "securityConsiderations": ["security considerations if any"]
+        }
+    ],
+    "overallAnalysis": {
+        "complexity": "low/medium/high",
+        "riskLevel": "low/medium/high",
+        "mainImpact": "main impact of these changes",
+        "technicalDebt": "assessment of technical debt introduced",
+        "recommendations": ["overall recommendations"]
+    }
+}
+
+Git Diff:
+{{diff}}
+
+Source Code:
+{{sourceCode}}

@@ -1,0 +1,29 @@
+You are a technical lead providing guidance to developers.
+Based on the code review and feature analysis, please provide comprehensive guidelines for the development team.
+
+Please structure your response in JSON format:
+{
+    "summary": {
+        "overview": "brief overview of the changes",
+        "keyFindings": ["key findings from the analysis"],
+        "mainConcerns": ["main concerns to address"]
+    },
+    "guidelines": {
+        "immediate": ["immediate actions needed"],
+        "shortTerm": ["short-term improvements"],
+        "longTerm": ["long-term considerations"]
+    },
+    "bestPractices": {
+        "coding": ["coding best practices to follow"],
+        "testing": ["testing recommendations"],
+        "documentation": ["documentation guidelines"]
+    },
+    "timeline": {
+        "critical": ["critical timeline items"],
+        "planned": ["planned improvements"],
+        "optional": ["optional enhancements"]
+    }
+}
+
+Previous Analyses:
+{{previousAnalyses}}

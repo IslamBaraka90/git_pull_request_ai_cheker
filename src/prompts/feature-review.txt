@@ -1,0 +1,20 @@
+Review the implementation of this feature:
+
+Feature Scope: {{featureScope}}
+
+Source Code:
+{{sourceCode}}
+
+Changes Made:
+{{diff}}
+
+Provide review in the following JSON format:
+{
+  "type": "feature-review",
+  "analysis": {
+    "implementation": {
+      "completeness": <number between 0-100>,
+      "suggestions": [<list of suggestions for improvement>]
+    }
+  }
+}

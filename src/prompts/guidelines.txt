@@ -1,0 +1,21 @@
+Generate development guidelines based on the following analyses:
+
+Feature Scope: {{featureScope}}
+
+Source Code:
+{{sourceCode}}
+
+Changes Made:
+{{diff}}
+
+Previous Analyses:
+{{previousAnalyses}}
+
+Provide guidelines in the following JSON format:
+{
+  "type": "guidelines",
+  "analysis": {
+    "recommendations": [<list of recommendations based on the analyses>],
+    "nextSteps": [<list of suggested next steps>]
+  }
+}
