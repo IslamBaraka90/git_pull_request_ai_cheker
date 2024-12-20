@@ -3,6 +3,7 @@ const { GoogleAIFileManager } = require("@google/generative-ai/server");
 const fs = require('fs').promises;
 const path = require('path');
 const fileService = require('./fileService');
+const socketService = require('./socketService');
 require('dotenv').config();
 
 class AIService {
@@ -91,8 +92,15 @@ class AIService {
     async generateContent(chatSession, prompt) {
         try {
             console.log('[AIService] Generating content with prompt length:', prompt.length);
+            socketService.emitEvent('analysis:start', { message: 'Starting content generation' });
+            
             const result = await chatSession.sendMessage(prompt);
             const text = result.response.text();
+
+            socketService.emitEvent('analysis:complete', { 
+                message: 'Content generation completed',
+                results: text 
+            });
 
             try {
                 // Clean up markdown formatting if present
@@ -124,15 +132,35 @@ class AIService {
             const taskId = await this.generateTaskId();
             console.log(`[AIService] Starting analysis task: ${taskId}`);
 
+            // Initial task start
+            socketService.emitEvent('analysis:start', {
+                taskId,
+                step: 'sourceCodeAnalysis',
+                status: 'preparing',
+                message: 'Preparing source code analysis'
+            });
+
             // Step 1: Generate source code file
-            console.log('[AIService] Generating source code file');
+            socketService.emitEvent('analysis:progress', {
+                taskId,
+                step: 'sourceCodeAnalysis',
+                status: 'generating',
+                message: 'Generating source code file'
+            });
+
             const fileResult = await fileService.generateSourceCodeFile(sourceCodePath);
             if (!fileResult.success) {
                 throw new Error('Failed to generate source code representation');
             }
 
             // Step 2: Upload to Google AI
-            console.log('[AIService] Uploading to Google AI');
+            socketService.emitEvent('analysis:progress', {
+                taskId,
+                step: 'sourceCodeAnalysis',
+                status: 'uploading',
+                message: 'Uploading code to AI service'
+            });
+
             const uploadedFile = await this.uploadToGemini(fileResult.path, 'text/plain');
             await this.waitForFilesActive([uploadedFile]);
 
@@ -154,25 +182,73 @@ class AIService {
             });
 
             // Step 4: Run source code analysis
-            console.log('[AIService] Running source code analysis');
+            socketService.emitEvent('analysis:progress', {
+                taskId,
+                step: 'sourceCodeAnalysis',
+                status: 'analyzing',
+                message: 'Analyzing source code'
+            });
+
             const sourceCodeAnalysis = await this.generateContent(chatSession, 
                 await this.getPrompt('source-code-analysis.txt', { featureScope })
             );
 
+            socketService.emitEvent('analysis:complete', {
+                taskId,
+                step: 'sourceCodeAnalysis',
+                status: 'completed',
+                message: 'Source code analysis completed',
+                results: sourceCodeAnalysis
+            });
+
             // Step 5: Run diff analysis
-            console.log('[AIService] Running diff analysis');
+            socketService.emitEvent('analysis:progress', {
+                taskId,
+                step: 'diffAnalysis',
+                status: 'analyzing',
+                message: 'Analyzing code changes'
+            });
+
             const diffAnalysis = await this.generateContent(chatSession,
                 await this.getPrompt('diff-analysis.txt', { featureScope })
             );
 
+            socketService.emitEvent('analysis:complete', {
+                taskId,
+                step: 'diffAnalysis',
+                status: 'completed',
+                message: 'Changes analysis completed',
+                results: diffAnalysis
+            });
+
             // Step 6: Run feature review
-            console.log('[AIService] Running feature review');
+            socketService.emitEvent('analysis:progress', {
+                taskId,
+                step: 'featureReview',
+                status: 'analyzing',
+                message: 'Reviewing feature implementation'
+            });
+
             const featureReview = await this.generateContent(chatSession,
                 await this.getPrompt('feature-review.txt', { featureScope })
             );
 
+            socketService.emitEvent('analysis:complete', {
+                taskId,
+                step: 'featureReview',
+                status: 'completed',
+                message: 'Feature review completed',
+                results: featureReview
+            });
+
             // Step 7: Generate guidelines
-            console.log('[AIService] Generating guidelines');
+            socketService.emitEvent('analysis:progress', {
+                taskId,
+                step: 'guidelines',
+                status: 'analyzing',
+                message: 'Generating guidelines and recommendations'
+            });
+
             const guidelines = await this.generateContent(chatSession,
                 await this.getPrompt('guidelines.txt', {
                     featureScope,
@@ -183,6 +259,14 @@ class AIService {
                     })
                 })
             );
+
+            socketService.emitEvent('analysis:complete', {
+                taskId,
+                step: 'guidelines',
+                status: 'completed',
+                message: 'Guidelines generation completed',
+                results: guidelines
+            });
 
             // Save task results
             const taskResult = {
@@ -196,18 +280,18 @@ class AIService {
                     diffAnalysis,
                     featureReview,
                     guidelines
-                },
-                completedAt: new Date().toISOString()
+                }
             };
 
-            await fs.writeFile(
-                path.join(this.tasksDir, `${taskId}.json`),
-                JSON.stringify(taskResult, null, 2)
-            );
-
             return taskResult;
+
         } catch (error) {
-            console.error('[AIService] Error in analyzeSourceCode:', error);
+            console.error('[AIService] Analysis error:', error);
+            socketService.emitEvent('analysis:error', {
+                taskId,
+                error: error.message,
+                details: error.stack
+            });
             throw error;
         }
     }
