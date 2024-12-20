@@ -1,0 +1,100 @@
+.analysis-step {
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff;
+}
+
+.step-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.step-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.status-text {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.status-text.pending {
+    color: #666;
+}
+
+.status-text.preparing,
+.status-text.generating,
+.status-text.uploading,
+.status-text.analyzing {
+    color: #0066cc;
+}
+
+.status-text.completed {
+    color: #28a745;
+}
+
+.status-text.error {
+    color: #dc3545;
+}
+
+.spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #0066cc;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.step-content {
+    margin-top: 15px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+}
+
+.analysis-result {
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.analysis-result h4 {
+    margin: 0 0 10px 0;
+    color: #333;
+}
+
+.analysis-result .summary {
+    margin-bottom: 15px;
+}
+
+.analysis-result .details {
+    margin-top: 15px;
+}
+
+.analysis-result ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.analysis-result li {
+    margin-bottom: 5px;
+}
+
+.analysis-result pre {
+    background-color: #f1f1f1;
+    padding: 10px;
+    border-radius: 4px;
+    overflow-x: auto;
+    font-size: 13px;
+}

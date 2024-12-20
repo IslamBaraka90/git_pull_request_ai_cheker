@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Git Checker</title>
     <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/analysis.css">
 </head>
 <body>
     <div class="container">
@@ -129,9 +130,17 @@
     </div>
 
     <script src="js/core/BaseWorkflow.js"></script>
+    <script src="js/formatters/AIResponseFormatter.js"></script>
     <script src="js/handlers/RepositoryHandler.js"></script>
     <script src="js/handlers/DiffHandler.js"></script>
     <script src="js/handlers/AnalysisHandler.js"></script>
     <script src="js/workflow.js"></script>
+    <script src="socket.io/socket.io.js"></script>
+    <script src="js/core/socket-client.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            socketClient.connect();
+        });
+    </script>
 </body>
 </html>

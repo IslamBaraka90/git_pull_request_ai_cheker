@@ -91,9 +91,9 @@ class AIService {
 
     async generateContent(chatSession, prompt) {
         try {
-            console.log('[AIService] Generating content with prompt length:', prompt.length);
             socketService.emitEvent('analysis:start', { message: 'Starting content generation' });
             
+            chatSession.params.generationConfig.responseMimeType = 'application/json';
             const result = await chatSession.sendMessage(prompt);
             const text = result.response.text();
 
