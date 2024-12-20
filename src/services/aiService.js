@@ -26,7 +26,6 @@ class AIService {
         
         // Ensure tasks directory exists
         this.ensureTasksDir();
-        console.log('[AIService] Initialized with API key');
     }
 
     async ensureTasksDir() {
@@ -44,12 +43,10 @@ class AIService {
 
     async uploadToGemini(filePath, mimeType) {
         try {
-            console.log(`[AIService] Uploading file: ${filePath}`);
             const uploadResult = await this.fileManager.uploadFile(filePath, {
                 mimeType,
                 displayName: path.basename(filePath),
             });
-            console.log(`[AIService] Uploaded file ${uploadResult.file.displayName} as: ${uploadResult.file.name}`);
             return uploadResult.file;
         } catch (error) {
             console.error('[AIService] Error uploading file:', error);
@@ -58,7 +55,6 @@ class AIService {
     }
 
     async waitForFilesActive(files) {
-        console.log("[AIService] Waiting for file processing...");
         for (const name of files.map((file) => file.name)) {
             let file = await this.fileManager.getFile(name);
             while (file.state === "PROCESSING") {
@@ -69,12 +65,10 @@ class AIService {
                 throw Error(`File ${file.name} failed to process`);
             }
         }
-        console.log("[AIService] ...all files ready");
     }
 
     async getPrompt(templateName, variables) {
         try {
-            console.log(`[AIService] Loading prompt template: ${templateName}`);
             const templatePath = path.join(this.promptsDir, templateName);
             let prompt = await fs.readFile(templatePath, 'utf8');
             
@@ -111,7 +105,6 @@ class AIService {
                         .trim();            // Remove any whitespace
                 }
                 
-                console.log('[AIService] Cleaned response:', cleanText);
                 return JSON.parse(cleanText);
             } catch (parseError) {
                 console.error('[AIService] Failed to parse AI response:', parseError);
@@ -128,10 +121,8 @@ class AIService {
     }
 
     async analyzeSourceCode(sourceCodePath, featureScope) {
+        const taskId = await this.generateTaskId();
         try {
-            const taskId = await this.generateTaskId();
-            console.log(`[AIService] Starting analysis task: ${taskId}`);
-
             // Initial task start
             socketService.emitEvent('analysis:start', {
                 taskId,
@@ -298,7 +289,6 @@ class AIService {
 
     async analyzeDiff(diff, featureScope) {
         try {
-            console.log('[AIService] Analyzing diff');
             const prompt = await this.getPrompt('diff-analysis.txt', {
                 diff,
                 featureScope
@@ -312,7 +302,6 @@ class AIService {
 
     async reviewFeature(sourceCode, diff, featureScope) {
         try {
-            console.log('[AIService] Reviewing feature');
             const prompt = await this.getPrompt('feature-review.txt', {
                 sourceCode,
                 diff,
@@ -327,7 +316,6 @@ class AIService {
 
     async generateGuidelines(sourceCode, diff, featureScope, previousAnalyses) {
         try {
-            console.log('[AIService] Generating guidelines');
             const prompt = await this.getPrompt('guidelines.txt', {
                 sourceCode,
                 diff,

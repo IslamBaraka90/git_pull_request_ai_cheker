@@ -7,7 +7,7 @@ class SocketClient {
         
         this.socket = null;
         this.eventHandlers = new Map();
-        this.debug = true;
+        this.debug = false;
         this.connectionAttempts = 0;
         this.maxReconnectAttempts = 5;
         this.initialized = false;
@@ -18,8 +18,6 @@ class SocketClient {
             console.warn('[SocketClient] Already initialized, skipping connection');
             return;
         }
-
-        console.log('[SocketClient] Connecting to server...');
         
         // Connect to the server's Socket.IO endpoint
         this.socket = io(window.location.origin, {
@@ -38,8 +36,6 @@ class SocketClient {
 
         // Handle server acknowledgment
         this.socket.on('server:ack', (data) => {
-            console.log('[SocketClient] Received server acknowledgment:', data);
-            // Send client acknowledgment
             this.socket.emit('client:ack', {
                 message: 'Client acknowledged connection',
                 clientId: this.socket.id,
@@ -48,7 +44,7 @@ class SocketClient {
         });
 
         this.socket.on('disconnect', (reason) => {
-            console.log('[SocketClient] Disconnected from server. Reason:', reason);
+            console.warn('[SocketClient] Disconnected from server. Reason:', reason);
             this.connectionAttempts++;
             
             if (this.connectionAttempts >= this.maxReconnectAttempts) {
@@ -60,7 +56,7 @@ class SocketClient {
             console.error('[SocketClient] Connection error:', error.message);
         });
 
-        // Debug: Log all incoming events
+        // Debug: Log all incoming events if debug mode is on
         if (this.debug) {
             this.socket.onAny((eventName, ...args) => {
                 console.log('[SocketClient] Received event:', eventName);
@@ -68,7 +64,7 @@ class SocketClient {
             });
         }
 
-        // Set up analysis event handlers with debugging
+        // Set up analysis event handlers
         this.setupAnalysisEventHandlers();
         this.initialized = true;
     }
@@ -93,17 +89,13 @@ class SocketClient {
         ];
 
         events.forEach(event => {
-            console.log('[SocketClient] Setting up handler for:', event);
-            
             this.socket.on(event, (data) => {
-                console.log(`[SocketClient] Received ${event}:`, JSON.stringify(data, null, 2));
                 this.triggerHandler(event, data);
             });
         });
     }
 
     on(event, handler) {
-        console.log('[SocketClient] Registering handler for event:', event);
         if (!this.eventHandlers.has(event)) {
             this.eventHandlers.set(event, []);
         }
@@ -116,9 +108,6 @@ class SocketClient {
     }
 
     triggerHandler(event, data) {
-        console.log(`[SocketClient] Triggering handlers for event: ${event}`);
-        console.log('[SocketClient] Event data:', JSON.stringify(data, null, 2));
-        
         const handlers = this.eventHandlers.get(event);
         if (handlers) {
             handlers.forEach(handler => {
@@ -128,23 +117,14 @@ class SocketClient {
                     console.error(`[SocketClient] Error in handler for ${event}:`, error);
                 }
             });
-        } else {
-            console.warn(`[SocketClient] No handlers registered for event: ${event}`);
         }
     }
 
     emit(event, data) {
         if (this.socket && this.socket.connected) {
-            console.log('[SocketClient] Emitting event:', event);
-            console.log('[SocketClient] Event data:', JSON.stringify(data, null, 2));
             this.socket.emit(event, data);
         } else {
             console.error('[SocketClient] Cannot emit event: socket not connected');
-            console.error('[SocketClient] Socket status:', {
-                exists: !!this.socket,
-                connected: this.socket?.connected,
-                id: this.socket?.id
-            });
         }
     }
 }
@@ -156,11 +136,9 @@ if (!window.socketClient) {
     // Auto-connect when the script loads
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('[SocketClient] DOM loaded, connecting...');
             window.socketClient.connect();
         });
     } else {
-        console.log('[SocketClient] Document already loaded, connecting...');
         window.socketClient.connect();
     }
 }
