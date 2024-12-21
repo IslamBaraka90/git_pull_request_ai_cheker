@@ -4,6 +4,7 @@ const fs = require('fs').promises;
 const path = require('path');
 const fileService = require('./fileService');
 const socketService = require('./socketService');
+const gitService = require('./gitService'); // Assuming gitService is defined in a separate file
 require('dotenv').config();
 
 class AIService {
@@ -120,7 +121,7 @@ class AIService {
         }
     }
 
-    async analyzeSourceCode(sourceCodePath, featureScope) {
+    async analyzeSourceCode(sourceCodePath, featureScope, mainBranch, featureBranch) {
         const taskId = await this.generateTaskId();
         try {
             // Initial task start
@@ -180,7 +181,7 @@ class AIService {
                 message: 'Analyzing source code'
             });
 
-            const sourceCodeAnalysis = await this.generateContent(chatSession, 
+            const sourceCodeAnalysis = await this.generateContent(chatSession,
                 await this.getPrompt('source-code-analysis.txt', { featureScope })
             );
 
@@ -200,8 +201,17 @@ class AIService {
                 message: 'Analyzing code changes'
             });
 
+            // First checkout the main branch
+            await gitService.checkoutBranch(sourceCodePath, mainBranch);
+            // Then compare with feature branch
+            const diffResults = await gitService.compareBranches(sourceCodePath, featureBranch);
+            const stringFormatedJson = JSON.stringify(diffResults, null, 2);
+            console.log('[AIService] Diff results:', stringFormatedJson);
             const diffAnalysis = await this.generateContent(chatSession,
-                await this.getPrompt('diff-analysis.txt', { featureScope })
+                await this.getPrompt('diff-analysis.txt', { 
+                    featureScope,
+                    diff: stringFormatedJson // Pass the diff property to match the prompt template
+                })
             );
 
             socketService.emitEvent('analysis:complete', {

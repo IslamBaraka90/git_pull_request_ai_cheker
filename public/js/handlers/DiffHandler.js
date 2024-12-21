@@ -14,9 +14,15 @@ class DiffHandler {
         }
 
         try {
+            // Store branch information in workflow state
+            this.workflow.state.mainBranch = mainBranch;
+            this.workflow.state.featureBranch = featureBranch;
+
             const result = await this.workflow.makeApiCall('/api/compare-branches', {
                 repoPath: this.workflow.state.repoPath,
-                targetBranch: featureBranch
+                mainBranch: mainBranch,
+                targetBranch: featureBranch,
+                featureScope: featureScope
             });
 
             this.displayDiff(result);
@@ -27,6 +33,9 @@ class DiffHandler {
     }
 
     displayDiff(diffResult) {
+        // Store diff results in workflow state
+        this.workflow.state.diffResults = diffResult;
+
         const summaryBox = document.getElementById('diffSummary');
         const diffContent = document.getElementById('diffContent');
 

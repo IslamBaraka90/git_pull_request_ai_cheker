@@ -67,28 +67,144 @@ class AIResponseFormatter {
     static formatDiffAnalysis(analysis) {
         return `
             <div class="analysis-result diff-analysis">
+                <div class="scope-alignment">
+                    <h3>Scope Alignment</h3>
+                    
+                    <div class="aligned-changes">
+                        <h4>Aligned Changes</h4>
+                        ${this.formatChanges(analysis.scopeAlignment?.alignedChanges)}
+                    </div>
+
+                    <div class="out-of-scope-changes">
+                        <h4>Out of Scope Changes</h4>
+                        ${this.formatOutOfScopeChanges(analysis.scopeAlignment?.outOfScopeChanges)}
+                    </div>
+                </div>
+
                 <div class="impact-assessment">
-                    <h4>Change Assessment</h4>
+                    <h3>Impact Assessment</h3>
                     <div class="metrics">
                         <div class="metric">
-                            <span class="label">Impact:</span>
-                            <span class="value ${analysis.changes?.impact || 'unknown'}">${analysis.changes?.impact || 'Unknown'}</span>
+                            <span class="label">Impact Level:</span>
+                            <span class="value ${analysis.impact?.level || 'unknown'}">${analysis.impact?.level || 'Unknown'}</span>
                         </div>
+                    </div>
+
+                    <div class="key-changes">
+                        <h4>Key Changes</h4>
+                        ${this.formatKeyChanges(analysis.impact?.keyChanges)}
+                    </div>
+
+                    <div class="risk-assessment">
+                        <h4>Risk Assessment</h4>
                         <div class="metric">
                             <span class="label">Risk Level:</span>
-                            <span class="value ${analysis.changes?.riskLevel || 'unknown'}">${analysis.changes?.riskLevel || 'Unknown'}</span>
+                            <span class="value ${analysis.impact?.riskAssessment?.level || 'unknown'}">
+                                ${analysis.impact?.riskAssessment?.level || 'Unknown'}
+                            </span>
+                        </div>
+                        <div class="risk-details">
+                            <h5>Risk Factors</h5>
+                            <ul>
+                                ${analysis.impact?.riskAssessment?.factors?.map(factor => `<li>${factor}</li>`).join('') || '<li>No risk factors specified</li>'}
+                            </ul>
+                            <h5>Mitigations</h5>
+                            <ul>
+                                ${analysis.impact?.riskAssessment?.mitigations?.map(mitigation => `<li>${mitigation}</li>`).join('') || '<li>No mitigations specified</li>'}
+                            </ul>
                         </div>
                     </div>
                 </div>
 
-                <div class="key-changes">
-                    <h4>Key Changes</h4>
-                    <ul>
-                        ${analysis.changes?.keyChanges?.map(change => `<li>${change}</li>`).join('') || '<li>No changes specified</li>'}
-                    </ul>
+                <div class="recommendations">
+                    <h3>Recommendations</h3>
+                    <div class="required-changes">
+                        <h4>Required Changes</h4>
+                        <ul>
+                            ${analysis.recommendations?.requiredChanges?.map(change => `<li>${change}</li>`).join('') || '<li>No required changes specified</li>'}
+                        </ul>
+                    </div>
+                    <div class="code-quality">
+                        <h4>Code Quality Suggestions</h4>
+                        <ul>
+                            ${analysis.recommendations?.codeQuality?.map(suggestion => `<li>${suggestion}</li>`).join('') || '<li>No code quality suggestions specified</li>'}
+                        </ul>
+                    </div>
+                    <div class="testing">
+                        <h4>Testing Focus Areas</h4>
+                        <ul>
+                            ${analysis.recommendations?.testing?.map(area => `<li>${area}</li>`).join('') || '<li>No testing areas specified</li>'}
+                        </ul>
+                    </div>
                 </div>
             </div>
         `;
+    }
+
+    static formatChanges(changes) {
+        if (!changes || changes.length === 0) {
+            return '<p>No aligned changes specified</p>';
+        }
+
+        return changes.map(change => `
+            <div class="change-item">
+                <h5>${change.description}</h5>
+                <div class="files">
+                    <strong>Files:</strong>
+                    <ul>
+                        ${change.files.map(file => `<li>${file}</li>`).join('')}
+                    </ul>
+                </div>
+                <div class="justification">
+                    <strong>Justification:</strong>
+                    <p>${change.justification}</p>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    static formatOutOfScopeChanges(changes) {
+        if (!changes || changes.length === 0) {
+            return '<p>No out of scope changes identified</p>';
+        }
+
+        return changes.map(change => `
+            <div class="change-item out-of-scope">
+                <h5>${change.description}</h5>
+                <div class="files">
+                    <strong>Files:</strong>
+                    <ul>
+                        ${change.files.map(file => `<li>${file}</li>`).join('')}
+                    </ul>
+                </div>
+                <div class="concern">
+                    <strong>Concern:</strong>
+                    <p style="color: red;">${change.concern}</p>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    static formatKeyChanges(changes) {
+        if (!changes || changes.length === 0) {
+            return '<p>No key changes specified</p>';
+        }
+
+        return changes.map(change => `
+            <div class="key-change-item">
+                <h5>${change.description}</h5>
+                <div class="impact-details">
+                    <div class="technical-impact">
+                        <strong>Technical Impact:</strong>
+                        <p>${change.technicalImpact}</p>
+                    </div>
+                    <div class="business-impact">
+                        <strong>Business Impact:</strong>
+                        <p>${change.businessImpact}</p>
+                    </div>
+                </div>
+            </div>
+        `).join('');
     }
 
     static formatFeatureReview(analysis) {

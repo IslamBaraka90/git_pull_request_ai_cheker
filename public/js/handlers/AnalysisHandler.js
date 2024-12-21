@@ -122,7 +122,9 @@ class AnalysisHandler {
             // Start source code analysis
             const taskResponse = await this.startAnalysisTask('sourceCodeAnalysis', '/api/analyze/source-code', {
                 sourceCode: this.workflow.state.repoPath,
-                featureScope
+                featureScope,
+                mainBranch: this.workflow.state.mainBranch,
+                featureBranch: this.workflow.state.featureBranch
             });
 
             if (taskResponse.taskId) {

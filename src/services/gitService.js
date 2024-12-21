@@ -1,10 +1,8 @@
 const simpleGit = require('simple-git');
-const AiService = require('./aiService');
 require('dotenv').config();
 
 class GitService {
     constructor() {
-        // this.aiService = new AiService(process.env.GEMINI_API_KEY);
     }
 
     async getRepoInfo(repoPath) {
@@ -41,10 +39,11 @@ class GitService {
         }
     }
 
-    async compareBranches(repoPath, targetBranch) {
+    async compareBranches(repoPath, targetBranch, mainBranch) {
         try {
             const git = simpleGit(repoPath);
-
+            //checkout main branch
+            await git.checkout(mainBranch);
             // Get current branch
             const branchInfo = await git.branch();
             const currentBranch = branchInfo.current;

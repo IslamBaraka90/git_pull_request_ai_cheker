@@ -17,8 +17,8 @@ router.post('/check-repo', async (req, res) => {
 
 router.post('/compare-branches', async (req, res) => {
     console.log('[Route] /compare-branches - Request body:', req.body);
-    const { repoPath, targetBranch, featureScope } = req.body;
-    const comparison = await gitService.compareBranches(repoPath, targetBranch, featureScope);
+    const { repoPath, targetBranch, featureScope,mainBranch } = req.body;
+    const comparison = await gitService.compareBranches(repoPath, targetBranch, mainBranch);
     console.log('[Route] /compare-branches - Response:', comparison);
     res.json(comparison);
 });
@@ -36,10 +36,10 @@ router.post('/analyze/source-code', async (req, res) => {
     console.log('Start sourcecode')
     try {
         console.log('[Route] /analyze/source-code - Request body:', req.body);
-        const { sourceCode, featureScope } = req.body;
+        const { sourceCode, featureScope, mainBranch, featureBranch, diffResults } = req.body;
         
         // Start the analysis task
-        const taskResult = await aiService.analyzeSourceCode(sourceCode, featureScope);
+        const taskResult = await aiService.analyzeSourceCode(sourceCode, featureScope, mainBranch, featureBranch, diffResults);
         
         // Return the task ID and initial status
         console.log('[Route] /analyze/source-code - Task started:', taskResult.taskId);
@@ -158,10 +158,24 @@ router.post('/generate-source-file', async (req, res) => {
 
 // Compare branches endpoint - now just returns diff
 router.post('/api/compare-branches', async (req, res) => {
+    console.log('[Route] /api/compare-branches - Request body:', req.body);
+    const { repoPath, mainBranch, targetBranch, featureScope } = req.body;
+    console.log('Repo path:', repoPath);
+    console.log('Main branch:', mainBranch);
+    console.log('Target branch:', targetBranch);
+
     try {
-        console.log('[Route] /api/compare-branches - Request body:', req.body);
-        const { repoPath, targetBranch } = req.body;
-        const result = await gitService.compareBranches(repoPath, targetBranch);
+        
+        // First checkout to main branch
+        await gitService.checkoutBranch(repoPath, mainBranch);
+        // Then compare with target branch
+        const result = await gitService.compareBranches(repoPath, targetBranch,mainBranch);
+        
+        // Add feature scope and branch info to result
+        result.featureScope = featureScope;
+        result.mainBranch = mainBranch;
+        result.targetBranch = targetBranch;
+        
         console.log('[Route] /api/compare-branches - Response:', result);
         res.json(result);
     } catch (error) {

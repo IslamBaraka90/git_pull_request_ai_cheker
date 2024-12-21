@@ -3,14 +3,45 @@ Analyze the following Git diff in the context of this feature scope: {{featureSc
 Diff:
 {{diff}}
 
-Provide analysis in the following JSON format:
+Provide a comprehensive analysis in the following JSON format:
 {
   "type": "diff-analysis",
   "analysis": {
-    "changes": {
-      "impact": <"high", "medium", or "low">,
-      "riskLevel": <"high", "medium", or "low">,
-      "keyChanges": [<list of key changes identified in the diff>]
+    "scopeAlignment": {
+      "alignedChanges": [
+        {
+          "description": "<description of the change>",
+          "files": ["<affected files>"],
+          "justification": "<why this aligns with scope>"
+        }
+      ],
+      "outOfScopeChanges": [
+        {
+          "description": "<description of the change>",
+          "files": ["<affected files>"],
+          "concern": "<why this is out of scope>"
+        }
+      ]
+    },
+    "impact": {
+      "level": "<high|medium|low>",
+      "keyChanges": [
+        {
+          "description": "<description of key change>",
+          "technicalImpact": "<specific technical impact>",
+          "businessImpact": "<business value or risk>"
+        }
+      ],
+      "riskAssessment": {
+        "level": "<high|medium|low>",
+        "factors": ["<risk factors identified>"],
+        "mitigations": ["<suggested mitigations>"]
+      }
+    },
+    "recommendations": {
+      "requiredChanges": ["<necessary changes to align with scope>"],
+      "codeQuality": ["<suggestions for improving code quality>"],
+      "testing": ["<areas that need testing focus>"]
     }
   }
 }
