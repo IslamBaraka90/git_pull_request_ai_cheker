@@ -4,7 +4,13 @@ class RepositoryHandler {
     }
 
     async checkRepository() {
-        const repoPath = document.getElementById('repoPath').value;
+        const repoPathInput = document.getElementById('projectSelect');
+        if (!repoPathInput) {
+            console.error('Repository path input not found');
+            return;
+        }
+
+        const repoPath = repoPathInput.value;
         if (!repoPath) {
             this.workflow.showError('Please enter a repository path');
             return;

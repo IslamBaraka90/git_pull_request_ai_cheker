@@ -11,6 +11,7 @@ class AnalysisHandler {
         };
         
         this.initializeSocketListeners();
+        this.initializeProjectSelector();
     }
 
     initializeSocketListeners() {
@@ -52,6 +53,64 @@ class AnalysisHandler {
             this.handleError(data.step || 'sourceCodeAnalysis', new Error(data.error));
             this.analysisInProgress = false;
         });
+    }
+
+    initializeProjectSelector() {
+        const projectSelect = document.getElementById('projectSelect');
+        const checkRepoButton = document.getElementById('checkRepo');
+        const repoPathInput = document.getElementById('repoPath');
+
+        // Load and populate projects
+        this.loadProjects();
+
+        // Handle project selection
+        projectSelect.addEventListener('change', () => {
+            const selectedProject = this.getSelectedProject();
+            if (selectedProject && repoPathInput) {
+                repoPathInput.value = selectedProject.repoPath;
+            }
+        });
+
+        // Override check repo click handler
+        checkRepoButton.addEventListener('click', async () => {
+            const selectedProject = this.getSelectedProject();
+            if (!selectedProject) {
+                alert('Please select a project first');
+                return;
+            }
+            if (this.workflow.repositoryHandler) {
+                await this.workflow.repositoryHandler.checkRepository();
+            }
+        });
+    }
+
+    loadProjects() {
+        const projectSelect = document.getElementById('projectSelect');
+        const savedProjects = localStorage.getItem('projects');
+        const projects = savedProjects ? JSON.parse(savedProjects) : [];
+
+        // Clear existing options except the first one
+        while (projectSelect.options.length > 1) {
+            projectSelect.remove(1);
+        }
+
+        // Add project options
+        projects.forEach(project => {
+            const option = document.createElement('option');
+            option.value = project.repoPath;
+            option.textContent = project.name;
+            projectSelect.appendChild(option);
+        });
+    }
+
+    getSelectedProject() {
+        const projectSelect = document.getElementById('projectSelect');
+        const projectId = projectSelect.value;
+        if (!projectId) return null;
+
+        const savedProjects = localStorage.getItem('projects');
+        const projects = savedProjects ? JSON.parse(savedProjects) : [];
+        return projects.find(p => p.id === projectId);
     }
 
     updateStepUI(stepId, data) {

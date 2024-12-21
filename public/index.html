@@ -11,11 +11,14 @@
     <div class="container">
         <h1>Git Checker</h1>
         
-        <!-- Step 1: Repository Path -->
+        <!-- Step 1: Project Selection -->
         <div id="step1" class="step">
-            <h3>Enter Repository Path</h3>
+            <h3>Select Project</h3>
             <div class="form-group">
-                <input type="text" id="repoPath" class="form-control" placeholder="Enter repository path">
+                <select id="projectSelect" class="form-control">
+                    <option value="">Select a project...</option>
+                </select>
+                <a href="/projects.html" class="btn btn-secondary">Manage Projects</a>
                 <button id="checkRepo" class="btn btn-primary">Check Repository</button>
             </div>
             <div id="repoStatus" class="status-message"></div>
